@@ -5,22 +5,22 @@ sequenceDiagram
     participant browser
     participant server
 
-    browser->>server: Get https://studies.cs.helsinki.fi/exampleapp/notes
+    browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/notes
     activate server
     server->>browser:  HTML document
     deactivate server
 
-    browser->>server: Get https://studies.cs.helsinki.fi/exampleapp/main.css
+    browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/main.css
     activate server
     server->>browser:  the css file
     deactivate server
 
-    browser->>server: Get https://studies.cs.helsinki.fi/exampleapp/main.js
+    browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/main.js
     activate server
-    server->>browser:   the Javascriopt file
+    server->>browser:   the Js file
     deactivate server
 
-    Note right of browser: The browser starts executing the JavaScript code that fetches the JSON from the server
+    Note right of browser: The browser starts executing the Js code that fetches the JSON from the server
 
     browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/data.json
     activate server
@@ -31,7 +31,7 @@ sequenceDiagram
 
     Note over browser: User writes a new note and clicks the Save button
 
-    browser->>server: Post https://studies.cs.helsinki.fi/exampleapp/new_note
+    browser->>server: POST https://studies.cs.helsinki.fi/exampleapp/new_note
     activate server
     Note right of server: Server processes the new note and saves it
     server-->>browser: Redirect to /exampleapp/notes
@@ -51,7 +51,7 @@ sequenceDiagram
 
     browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/main.js
     activate server
-    server-->>browser: the JavaScript file
+    server-->>browser: the Js file
     deactivate server
 
     browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/data.json
