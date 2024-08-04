@@ -90,63 +90,69 @@ const App = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const newPerson = { name: newName, number: newNumber };
-    const nameExist = persons.find((person) => person.name == newPerson.name);
+    const nameExist = persons.find((person) => person.name === newPerson.name);
 
     if (nameExist) {
       handleUpdate(nameExist.id, newPerson);
       setMessage(`Changed ${newPerson.name}`);
-      setTimeout(() => {
-        setMessage("");
-      }, 1500);
+      setTimeout(() => setMessage(""), 1500);
       return;
     }
 
-    try {
-      createPerson(newPerson).catch(
-        setMessage(
-          `Information of ${newPerson.name} has already removed from server`
-        )
-      );
-      setPersons([...persons, newPerson]);
-      setNewName("");
-      setNewNumber("");
-      setMessage(`Added ${newPerson.name}`);
-      setTimeout(() => {
-        setMessage("");
-      }, 1500);
-    } catch (error) {
-      console.log(error);
-    }
+    createPerson(newPerson)
+      .then((response) => {
+        setPersons([...persons, response.data]);
+        setNewName("");
+        setNewNumber("");
+        setMessage(`Added ${newPerson.name}`);
+        setTimeout(() => setMessage(""), 1500);
+      })
+      .catch((error) => {
+        console.error(error);
+        setMessage(`Error adding ${newPerson.name}`);
+        setTimeout(() => setMessage(""), 1500);
+      });
   };
 
   const handleDelete = (id, name) => {
     if (window.confirm(`Delete ${name}`)) {
-      setPersons(persons.filter((person) => person.id !== id));
-      deletePerson(id).catch(
-        setMessage(`Information of ${name} has already removed from server`)
-      );
-    } else {
-      return;
+      deletePerson(id)
+        .then(() => {
+          setPersons(persons.filter((person) => person.id !== id));
+          setMessage(`Deleted ${name}`);
+          setTimeout(() => setMessage(""), 1500);
+        })
+        .catch((error) => {
+          console.error(error);
+          setMessage(`Error deleting ${name}`);
+          setTimeout(() => setMessage(""), 1500);
+        });
     }
   };
 
   const handleUpdate = (id, newPerson) => {
     if (
       window.confirm(
-        `${newPerson.name} is already added to phonebook,replace the old number with a new one`
+        `${newPerson.name} is already added to phonebook, replace the old number with a new one`
       )
     ) {
-      updatePerson(id, newPerson).catch(
-        setMessage(
-          `Information of ${newPerson.name} has already removed from server`
-        )
-      );
-    } else return;
+      updatePerson(id, newPerson)
+        .then((response) => {
+          setPersons(persons.map((person) => (person.id !== id ? person : response.data)));
+          setMessage(`Updated ${newPerson.name}`);
+          setTimeout(() => setMessage(""), 1500);
+        })
+        .catch((error) => {
+          console.error(error);
+          setMessage(`Error updating ${newPerson.name}`);
+          setTimeout(() => setMessage(""), 1500);
+        });
+    }
   };
 
   useEffect(() => {
-    getAll().then((resp) => setPersons(resp.data));
-  }, [persons]);
+    getAll().then((response) => setPersons(response.data));
+  }, []);
 
   return (
     <div>
