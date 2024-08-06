@@ -6,8 +6,8 @@ import {
   updatePerson,
 } from "./services/persons";
 
-const Message = ({ text }) => {
-  return <p className="message">{text}</p>;
+const Message = ({ text, success }) => {
+  return <p className={`message ${success ? "success" : "error"}`}>{text}</p>;
 };
 
 const Filter = ({ onChange, value }) => {
@@ -45,7 +45,7 @@ const Persons = ({ search, persons, filteredPersons, onDelete }) => {
     <>
       {search.length === 0
         ? persons.map((person) => (
-            <p key={person.name}>
+            <p key={person.id}>
               {person.name} {person.number}{" "}
               <button onClick={() => onDelete(person.id, person.name)}>
                 delete
@@ -53,7 +53,7 @@ const Persons = ({ search, persons, filteredPersons, onDelete }) => {
             </p>
           ))
         : filteredPersons.map((person) => (
-            <p key={person.name}>
+            <p key={person.id}>
               {person.name} {person.number}{" "}
               <button onClick={() => onDelete(person.id, person.name)}>
                 delete
@@ -84,32 +84,34 @@ const App = () => {
   };
 
   const filteredPersons = persons.filter((person) =>
-    person.name.toLowerCase().startsWith(search.toLowerCase())
+    person.name?.toLowerCase().startsWith(search.toLowerCase())
   );
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const newPerson = { name: newName, number: newNumber };
+
     const nameExist = persons.find((person) => person.name === newPerson.name);
 
     if (nameExist) {
       handleUpdate(nameExist.id, newPerson);
-      setMessage(`Changed ${newPerson.name}`);
+      setMessage({ text: `Changed ${newPerson.name}`, success: true });
       setTimeout(() => setMessage(""), 1500);
       return;
     }
 
     createPerson(newPerson)
       .then((response) => {
+        console.log(response.data);
         setPersons([...persons, response.data]);
         setNewName("");
         setNewNumber("");
-        setMessage(`Added ${newPerson.name}`);
+        setMessage({ text: `Added ${newPerson.name}`, success: true });
         setTimeout(() => setMessage(""), 1500);
       })
       .catch((error) => {
         console.error(error);
-        setMessage(`Error adding ${newPerson.name}`);
+        setMessage({ text: error.response.data.error, success: false });
         setTimeout(() => setMessage(""), 1500);
       });
   };
@@ -119,12 +121,12 @@ const App = () => {
       deletePerson(id)
         .then(() => {
           setPersons(persons.filter((person) => person.id !== id));
-          setMessage(`Deleted ${name}`);
+          setMessage({ text: `Deleted ${name}`, success: true });
           setTimeout(() => setMessage(""), 1500);
         })
         .catch((error) => {
           console.error(error);
-          setMessage(`Error deleting ${name}`);
+          setMessage({ text: error.response.data.error, success: false });
           setTimeout(() => setMessage(""), 1500);
         });
     }
@@ -138,26 +140,34 @@ const App = () => {
     ) {
       updatePerson(id, newPerson)
         .then((response) => {
-          setPersons(persons.map((person) => (person.id !== id ? person : response.data)));
-          setMessage(`Updated ${newPerson.name}`);
+          setPersons(
+            persons.map((person) => (person.id !== id ? person : response.data))
+          );
+          setNewName("");
+          setNewNumber("");
+          setMessage({ text: `Updated ${newPerson.name}`, success: true });
           setTimeout(() => setMessage(""), 1500);
         })
         .catch((error) => {
           console.error(error);
-          setMessage(`Error updating ${newPerson.name}`);
+          setMessage({ text: error.response.data.error, success: false });
           setTimeout(() => setMessage(""), 1500);
         });
     }
   };
 
   useEffect(() => {
-    getAll().then((response) => setPersons(response.data));
+    try {
+      getAll().then((response) => setPersons(response.data));
+    } catch (error) {
+      console.log(error);
+    }
   }, []);
 
   return (
     <div>
       <h2>Phonebook</h2>
-      {message && <Message text={message} />}
+      {message && <Message text={message.text} success={message.success} />}
       <Filter onChange={handleChangeSearch} value={search} />
       <h3>Add a new</h3>
       <PersonForm
